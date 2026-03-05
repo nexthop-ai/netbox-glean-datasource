@@ -41,6 +41,8 @@ func (c *CircuitCrawler) ObjectDefinition() components.ObjectDefinition {
 			FacetDef("nbTenant", "Tenant", components.PropertyTypePicklist, 4),
 			PropertyDef("nbCid", "Circuit ID", components.PropertyTypeText),
 			PropertyDef("nbCommitRate", "Commit Rate (Kbps)", components.PropertyTypeText),
+			PropertyDef("nbTerminationA", "Termination A", components.PropertyTypeText),
+			PropertyDef("nbTerminationZ", "Termination Z", components.PropertyTypeText),
 		},
 	}
 }
@@ -59,6 +61,13 @@ func (c *CircuitCrawler) Transform(obj map[string]any, datasource, netboxURL str
 	}
 	bb.Add("Install Date", netbox.GetString(obj, "install_date"))
 	bb.Add("Termination Date", netbox.GetString(obj, "termination_date"))
+
+	// Circuit terminations.
+	termA := circuitTermination(obj, "termination_a")
+	termZ := circuitTermination(obj, "termination_z")
+	bb.Add("Termination A", termA)
+	bb.Add("Termination Z", termZ)
+
 	bb.Add("Description", netbox.GetString(obj, "description"))
 
 	doc.Body = &components.ContentDefinition{
@@ -86,7 +95,27 @@ func (c *CircuitCrawler) Transform(obj map[string]any, datasource, netboxURL str
 	if v := netbox.GetInt(obj, "commit_rate"); v > 0 {
 		props = append(props, CustomProp("nbCommitRate", fmt.Sprintf("%d", v)))
 	}
+	if termA != "" {
+		props = append(props, CustomProp("nbTerminationA", termA))
+	}
+	if termZ != "" {
+		props = append(props, CustomProp("nbTerminationZ", termZ))
+	}
 	doc.CustomProperties = props
 
 	return doc
+}
+
+// circuitTermination extracts a human-readable description of a circuit termination.
+func circuitTermination(obj map[string]any, key string) string {
+	term := netbox.GetNested(obj, key)
+	if term == nil {
+		return ""
+	}
+	// The termination object has a nested "termination" with the actual site/provider network.
+	target := netbox.GetNestedString(term, "termination", "display")
+	if target != "" {
+		return target
+	}
+	return netbox.GetString(term, "display")
 }

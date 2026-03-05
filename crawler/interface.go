@@ -44,6 +44,9 @@ func (c *InterfaceCrawler) ObjectDefinition() components.ObjectDefinition {
 			PropertyDef("nbMacAddress", "MAC Address", components.PropertyTypeText),
 			PropertyDef("nbEnabled", "Enabled", components.PropertyTypeText),
 			PropertyDef("nbConnectedTo", "Connected To", components.PropertyTypeText),
+			PropertyDef("nbLag", "LAG", components.PropertyTypeText),
+			PropertyDef("nbUntaggedVlan", "Untagged VLAN", components.PropertyTypeText),
+			PropertyDef("nbTaggedVlans", "Tagged VLANs", components.PropertyTypeText),
 		},
 	}
 }
@@ -74,6 +77,30 @@ func (c *InterfaceCrawler) Transform(obj map[string]any, datasource, netboxURL s
 		bb.Add("Mode", netbox.GetString(mode, "label"))
 	}
 	bb.Add("Description", netbox.GetString(obj, "description"))
+
+	// LAG membership.
+	lagName := ""
+	if lag := netbox.GetNested(obj, "lag"); lag != nil {
+		lagDevice := netbox.GetNestedString(lag, "device", "display")
+		lagIface := netbox.GetString(lag, "display")
+		if lagDevice != "" && lagIface != "" {
+			lagName = lagDevice + ":" + lagIface
+		} else {
+			lagName = lagIface
+		}
+		bb.Add("LAG", lagName)
+	}
+
+	// VLAN assignments.
+	untaggedVlan := ""
+	if vlan := netbox.GetNested(obj, "untagged_vlan"); vlan != nil {
+		untaggedVlan = netbox.GetString(vlan, "display")
+		bb.Add("Untagged VLAN", untaggedVlan)
+	}
+	taggedVlans := vlanList(obj, "tagged_vlans")
+	if taggedVlans != "" {
+		bb.Add("Tagged VLANs", taggedVlans)
+	}
 
 	// Connection/cable info.
 	connectedTo := connectedEndpoints(obj)
@@ -123,6 +150,15 @@ func (c *InterfaceCrawler) Transform(obj map[string]any, datasource, netboxURL s
 	if connectedTo != "" {
 		props = append(props, CustomProp("nbConnectedTo", connectedTo))
 	}
+	if lagName != "" {
+		props = append(props, CustomProp("nbLag", lagName))
+	}
+	if untaggedVlan != "" {
+		props = append(props, CustomProp("nbUntaggedVlan", untaggedVlan))
+	}
+	if taggedVlans != "" {
+		props = append(props, CustomProp("nbTaggedVlans", taggedVlans))
+	}
 	doc.CustomProperties = props
 
 	return doc
@@ -153,4 +189,27 @@ func connectedEndpoints(obj map[string]any) string {
 		}
 	}
 	return strings.Join(parts, ", ")
+}
+
+// vlanList extracts VLAN display names from a tagged_vlans array.
+func vlanList(obj map[string]any, key string) string {
+	v, ok := obj[key]
+	if !ok || v == nil {
+		return ""
+	}
+	arr, ok := v.([]any)
+	if !ok || len(arr) == 0 {
+		return ""
+	}
+	var names []string
+	for _, item := range arr {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		if name := netbox.GetString(m, "display"); name != "" {
+			names = append(names, name)
+		}
+	}
+	return strings.Join(names, ", ")
 }
