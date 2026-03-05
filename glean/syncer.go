@@ -16,13 +16,16 @@ package glean
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"sort"
 	"time"
 
 	apiclientgo "github.com/gleanwork/api-client-go"
+	"github.com/gleanwork/api-client-go/models/apierrors"
 	"github.com/gleanwork/api-client-go/models/components"
 	"github.com/nexthop-ai/netbox-glean-datasource/crawler"
 	"github.com/nexthop-ai/netbox-glean-datasource/netbox"
@@ -118,7 +121,13 @@ func (s *Syncer) SyncAll(ctx context.Context, objectTypes []string, since *time.
 	if _, err := s.GleanSDK.Indexing.Documents.ProcessAll(ctx, &components.ProcessAllDocumentsRequest{
 		Datasource: &ds,
 	}); err != nil {
-		return nil, &SyncError{Source: "glean", Err: fmt.Errorf("process all documents: %w", err)}
+		// Glean rate-limits ProcessAll — a 429 means a recent call already triggered processing.
+		var apiErr *apierrors.APIError
+		if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusTooManyRequests {
+			slog.Warn("processAllDocuments rate limited, processing already queued")
+		} else {
+			return nil, &SyncError{Source: "glean", Err: fmt.Errorf("process all documents: %w", err)}
+		}
 	}
 
 	slog.Info("sync completed successfully")
