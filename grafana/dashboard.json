@@ -280,7 +280,18 @@
         "orientation": "horizontal",
         "showValue": "always",
         "barWidth": 0.8,
-        "groupWidth": 0.7
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "none",
+          "sort": "none"
+        }
       },
       "targets": [
         {
