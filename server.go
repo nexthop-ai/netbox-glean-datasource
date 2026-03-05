@@ -64,6 +64,7 @@ func startHTTPServer(addr string, status *SyncStatus) *http.Server {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 	mux.HandleFunc("/", status.handleStatus)
+	mux.HandleFunc("/ready", status.handleReady)
 	mux.HandleFunc("/sync", status.handleTriggerSync)
 
 	srv := &http.Server{
@@ -135,6 +136,19 @@ a.btn:hover { background: #0052a3; }
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, _ = w.Write(buf.Bytes())
+}
+
+func (s *SyncStatus) handleReady(w http.ResponseWriter, _ *http.Request) {
+	s.mu.RLock()
+	ready := s.syncCount > 0
+	s.mu.RUnlock()
+
+	if !ready {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = fmt.Fprintf(w, "not ready: initial sync not yet completed\n")
+		return
+	}
+	_, _ = fmt.Fprintf(w, "ok\n")
 }
 
 func (s *SyncStatus) handleTriggerSync(w http.ResponseWriter, _ *http.Request) {
