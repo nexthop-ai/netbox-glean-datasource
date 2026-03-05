@@ -526,7 +526,7 @@
       },
       "targets": [
         {
-          "expr": "{app=\"netbox-glean-datasource\"}",
+          "expr": "{namespace=\"netbox-glean\", pod=\"netbox-glean-datasource-0\"}",
           "refId": "A"
         }
       ]
