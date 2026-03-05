@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -152,7 +153,7 @@ func cmdSync(args []string) {
 	}
 
 	ctx := context.Background()
-	if err := syncer.SyncAll(ctx, cfg.Sync.ObjectTypes, sinceTime); err != nil {
+	if _, err := syncer.SyncAll(ctx, cfg.Sync.ObjectTypes, sinceTime); err != nil {
 		slog.Error("sync failed", "error", err)
 		os.Exit(1)
 	}
@@ -174,7 +175,33 @@ func cmdServe(args []string) {
 	syncer := newSyncer(cfg, sdk)
 	syncCount := 0
 
+	// Start HTTP server for status page, metrics, and sync trigger.
+	triggerChan := make(chan struct{}, 1)
+	status := NewSyncStatus(triggerChan)
+	srv := startHTTPServer(cfg.HTTP.Listen, status)
+	defer func() { _ = srv.Close() }()
+	slog.Info("HTTP server started", "listen", cfg.HTTP.Listen)
+
+	timer := time.NewTimer(0) // Fire immediately for the first sync.
+	defer timer.Stop()
+
 	for {
+		// Wait for the next sync trigger.
+		select {
+		case <-ctx.Done():
+			slog.Info("shutting down")
+			return
+		case <-triggerChan:
+			slog.Info("sync triggered via HTTP")
+			if !timer.Stop() {
+				select {
+				case <-timer.C:
+				default:
+				}
+			}
+		case <-timer.C:
+		}
+
 		var since *time.Time
 		if syncCount > 0 && syncCount%cfg.Sync.FullSyncEvery != 0 {
 			t := time.Now().Add(-cfg.Sync.Interval - time.Minute) // small overlap for safety
@@ -185,21 +212,47 @@ func cmdServe(args []string) {
 		if since != nil {
 			syncType = "incremental"
 		}
-		slog.Info("starting sync cycle", "cycle", syncCount+1, "type", syncType)
-
-		if err := syncer.SyncAll(ctx, cfg.Sync.ObjectTypes, since); err != nil {
-			slog.Error("sync cycle failed", "cycle", syncCount+1, "error", err)
-		} else {
-			slog.Info("sync cycle completed", "cycle", syncCount+1)
-		}
+		runSyncCycle(ctx, syncer, status, cfg.Sync.ObjectTypes, syncType, syncCount, since)
 		syncCount++
 
 		slog.Info("sleeping until next sync", "interval", cfg.Sync.Interval)
-		select {
-		case <-ctx.Done():
-			slog.Info("shutting down")
-			return
-		case <-time.After(cfg.Sync.Interval):
+		timer.Reset(cfg.Sync.Interval)
+	}
+}
+
+func runSyncCycle(ctx context.Context, syncer *gleanpkg.Syncer, status *SyncStatus, objectTypes []string, syncType string, cycle int, since *time.Time) {
+	slog.Info("starting sync cycle", "cycle", cycle+1, "type", syncType)
+
+	status.SetSyncing(true)
+	syncCyclesTotal.WithLabelValues(syncType).Inc()
+	syncStart := time.Now()
+
+	result, err := syncer.SyncAll(ctx, objectTypes, since)
+
+	elapsed := time.Since(syncStart)
+	syncDuration.WithLabelValues(syncType).Observe(elapsed.Seconds())
+	status.SetSyncing(false)
+
+	if err != nil {
+		errorSource := "unknown"
+		var syncErr *gleanpkg.SyncError
+		if errors.As(err, &syncErr) {
+			errorSource = syncErr.Source
 		}
+		slog.Error("sync cycle failed", "cycle", cycle+1, "source", errorSource, "error", err)
+		syncErrorsTotal.WithLabelValues(syncType, errorSource).Inc()
+		lastSyncSuccess.Set(0)
+		status.RecordSync(syncType, nil, err)
+	} else {
+		slog.Info("sync cycle completed", "cycle", cycle+1, "duration", elapsed)
+		lastSyncSuccess.Set(1)
+		lastSyncSuccessTimestamp.WithLabelValues(syncType).SetToCurrentTime()
+		netboxFetchDuration.Observe(result.FetchDuration.Seconds())
+		gleanPushDuration.Observe(result.PushDuration.Seconds())
+		for objType, count := range result.DocCounts {
+			documentCount.WithLabelValues(objType).Set(float64(count))
+			documentsPerSync.WithLabelValues(objType).Add(float64(count))
+		}
+		status.RecordSync(syncType, result.DocCounts, nil)
 	}
 }

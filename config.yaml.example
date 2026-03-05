@@ -21,3 +21,7 @@ sync:
   interval: 1h
   # Do a full sync every N syncs (to clean up deleted objects).
   full_sync_every: 24
+
+http:
+  # Listen address for the status page and Prometheus metrics (serve mode only).
+  listen: :8080

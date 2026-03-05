@@ -38,9 +38,25 @@ type Syncer struct {
 	Concurrency int
 }
 
+// SyncResult contains per-object-type document counts and phase durations.
+type SyncResult struct {
+	DocCounts     map[string]int
+	FetchDuration time.Duration
+	PushDuration  time.Duration
+}
+
+// SyncError wraps a sync error with the source that caused it.
+type SyncError struct {
+	Source string // "netbox" or "glean"
+	Err    error
+}
+
+func (e *SyncError) Error() string { return e.Err.Error() }
+func (e *SyncError) Unwrap() error { return e.Err }
+
 // SyncAll syncs all specified object types. If objectTypes is empty, syncs all registered crawlers.
 // If since is non-nil, only objects updated after that time are fetched.
-func (s *Syncer) SyncAll(ctx context.Context, objectTypes []string, since *time.Time) error {
+func (s *Syncer) SyncAll(ctx context.Context, objectTypes []string, since *time.Time) (*SyncResult, error) {
 	crawlers := s.resolveCrawlers(objectTypes)
 
 	slog.Info("starting sync", "objectTypes", len(crawlers), "incremental", since != nil)
@@ -52,6 +68,7 @@ func (s *Syncer) SyncAll(ctx context.Context, objectTypes []string, since *time.
 	}
 	results := make([]fetchResult, len(crawlers))
 
+	fetchStart := time.Now()
 	g, fetchCtx := errgroup.WithContext(ctx)
 	g.SetLimit(s.Concurrency)
 
@@ -80,15 +97,20 @@ func (s *Syncer) SyncAll(ctx context.Context, objectTypes []string, since *time.
 	}
 
 	if err := g.Wait(); err != nil {
-		return fmt.Errorf("fetch phase failed: %w", err)
+		return nil, &SyncError{Source: "netbox", Err: fmt.Errorf("fetch phase failed: %w", err)}
 	}
+	fetchDuration := time.Since(fetchStart)
 
 	// Phase 2: Push to Glean sequentially (Glean allows only one bulk upload at a time per datasource).
+	pushStart := time.Now()
+	docCounts := make(map[string]int, len(results))
 	for _, r := range results {
 		if err := s.pushToGlean(ctx, r.crawler, r.docs); err != nil {
-			return fmt.Errorf("push phase failed: %w", err)
+			return nil, &SyncError{Source: "glean", Err: fmt.Errorf("push phase failed: %w", err)}
 		}
+		docCounts[r.crawler.ObjectType()] = len(r.docs)
 	}
+	pushDuration := time.Since(pushStart)
 
 	// Phase 3: Tell Glean to process all uploaded documents.
 	slog.Info("triggering document processing")
@@ -96,11 +118,15 @@ func (s *Syncer) SyncAll(ctx context.Context, objectTypes []string, since *time.
 	if _, err := s.GleanSDK.Indexing.Documents.ProcessAll(ctx, &components.ProcessAllDocumentsRequest{
 		Datasource: &ds,
 	}); err != nil {
-		return fmt.Errorf("process all documents: %w", err)
+		return nil, &SyncError{Source: "glean", Err: fmt.Errorf("process all documents: %w", err)}
 	}
 
 	slog.Info("sync completed successfully")
-	return nil
+	return &SyncResult{
+		DocCounts:     docCounts,
+		FetchDuration: fetchDuration,
+		PushDuration:  pushDuration,
+	}, nil
 }
 
 func (s *Syncer) resolveCrawlers(objectTypes []string) []crawler.Crawler {

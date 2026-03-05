@@ -42,6 +42,9 @@ type Config struct {
 		Interval       time.Duration `yaml:"interval"`
 		FullSyncEvery  int           `yaml:"full_sync_every"`
 	} `yaml:"sync"`
+	HTTP struct {
+		Listen string `yaml:"listen"`
+	} `yaml:"http"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -89,6 +92,9 @@ func LoadConfig(path string) (*Config, error) {
 	}
 	if cfg.Sync.FullSyncEvery <= 0 {
 		cfg.Sync.FullSyncEvery = 24
+	}
+	if cfg.HTTP.Listen == "" {
+		cfg.HTTP.Listen = ":8080"
 	}
 
 	return cfg, nil

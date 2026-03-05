@@ -85,6 +85,12 @@ periodically at the configured interval. Incremental syncs are used between
 full syncs (controlled by `full_sync_every`). Handles SIGINT/SIGTERM for
 graceful shutdown.
 
+In serve mode, an HTTP server is started (default `:8080`) providing:
+
+- `/` — Status page showing sync state, document counts, and uptime
+- `/metrics` — Prometheus metrics endpoint
+- `/sync` — Trigger an immediate sync cycle
+
 ## Docker
 
 ```sh
