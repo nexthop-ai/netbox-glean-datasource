@@ -16,6 +16,7 @@ package crawler
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gleanwork/api-client-go/models/components"
 	"github.com/nexthop-ai/netbox-glean-datasource/netbox"
@@ -42,6 +43,7 @@ func (c *InterfaceCrawler) ObjectDefinition() components.ObjectDefinition {
 			PropertyDef("nbMode", "Mode", components.PropertyTypeText),
 			PropertyDef("nbMacAddress", "MAC Address", components.PropertyTypeText),
 			PropertyDef("nbEnabled", "Enabled", components.PropertyTypeText),
+			PropertyDef("nbConnectedTo", "Connected To", components.PropertyTypeText),
 		},
 	}
 }
@@ -72,6 +74,15 @@ func (c *InterfaceCrawler) Transform(obj map[string]any, datasource, netboxURL s
 		bb.Add("Mode", netbox.GetString(mode, "label"))
 	}
 	bb.Add("Description", netbox.GetString(obj, "description"))
+
+	// Connection/cable info.
+	connectedTo := connectedEndpoints(obj)
+	if connectedTo != "" {
+		bb.Add("Connected To", connectedTo)
+	}
+	if cable := netbox.GetNested(obj, "cable"); cable != nil {
+		bb.Add("Cable", netbox.GetString(cable, "label"))
+	}
 
 	doc.Body = &components.ContentDefinition{
 		MimeType:    "text/plain",
@@ -109,7 +120,37 @@ func (c *InterfaceCrawler) Transform(obj map[string]any, datasource, netboxURL s
 		}
 	}
 	props = append(props, CustomProp("nbEnabled", fmt.Sprintf("%v", netbox.GetBool(obj, "enabled"))))
+	if connectedTo != "" {
+		props = append(props, CustomProp("nbConnectedTo", connectedTo))
+	}
 	doc.CustomProperties = props
 
 	return doc
+}
+
+// connectedEndpoints extracts "device:port" strings from the connected_endpoints array.
+func connectedEndpoints(obj map[string]any) string {
+	eps, ok := obj["connected_endpoints"]
+	if !ok || eps == nil {
+		return ""
+	}
+	arr, ok := eps.([]any)
+	if !ok || len(arr) == 0 {
+		return ""
+	}
+	var parts []string
+	for _, ep := range arr {
+		m, ok := ep.(map[string]any)
+		if !ok {
+			continue
+		}
+		device := netbox.GetNestedString(m, "device", "display")
+		port := netbox.GetString(m, "display")
+		if device != "" && port != "" {
+			parts = append(parts, device+":"+port)
+		} else if port != "" {
+			parts = append(parts, port)
+		}
+	}
+	return strings.Join(parts, ", ")
 }
