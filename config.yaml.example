@@ -1,0 +1,23 @@
+netbox:
+  url: https://netbox.example.com
+  token: your-netbox-api-token
+
+glean:
+  instance: your-glean-instance
+  token: your-glean-indexing-api-token
+
+datasource:
+  name: netbox
+  display_name: NetBox
+
+sync:
+  # Object types to sync. Empty list means all types.
+  object_types: []
+  # Number of documents per BulkIndex call.
+  batch_size: 100
+  # Number of object types to sync in parallel.
+  concurrency: 4
+  # Interval between syncs in serve mode.
+  interval: 1h
+  # Do a full sync every N syncs (to clean up deleted objects).
+  full_sync_every: 24
