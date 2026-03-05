@@ -64,6 +64,11 @@ var (
 		Name: "netbox_glean_documents_pushed_total",
 		Help: "Total number of documents pushed to Glean.",
 	}, []string{"object_type"})
+
+	lastSyncUpdatedCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "netbox_glean_last_sync_updated_count",
+		Help: "Number of documents updated in the last sync cycle per object type.",
+	}, []string{"object_type"})
 )
 
 func init() {
@@ -77,5 +82,6 @@ func init() {
 		netboxFetchDuration,
 		gleanPushDuration,
 		documentsPerSync,
+		lastSyncUpdatedCount,
 	)
 }

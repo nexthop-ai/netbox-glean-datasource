@@ -58,6 +58,23 @@ type ListResponse struct {
 	Results  []map[string]any `json:"results"`
 }
 
+// Count returns the total number of objects at the given endpoint without fetching all results.
+func (c *Client) Count(ctx context.Context, endpoint string) (int, error) {
+	params := url.Values{"limit": {"1"}}
+	reqURL := c.baseURL + endpoint + "?" + params.Encode()
+	resp, err := c.doWithRetry(ctx, reqURL)
+	if err != nil {
+		return 0, err
+	}
+	var page ListResponse
+	if err := json.NewDecoder(resp.Body).Decode(&page); err != nil {
+		_ = resp.Body.Close()
+		return 0, fmt.Errorf("decoding count from %s: %w", endpoint, err)
+	}
+	_ = resp.Body.Close()
+	return page.Count, nil
+}
+
 // List fetches all pages from a NetBox API endpoint, calling fn for each page of results.
 func (c *Client) List(ctx context.Context, endpoint string, params url.Values, fn func(results []map[string]any) error) error {
 	if params == nil {

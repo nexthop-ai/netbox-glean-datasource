@@ -250,9 +250,13 @@ func runSyncCycle(ctx context.Context, syncer *gleanpkg.Syncer, status *SyncStat
 		netboxFetchDuration.Observe(result.FetchDuration.Seconds())
 		gleanPushDuration.Observe(result.PushDuration.Seconds())
 		for objType, count := range result.DocCounts {
-			documentCount.WithLabelValues(objType).Set(float64(count))
+			lastSyncUpdatedCount.WithLabelValues(objType).Set(float64(count))
 			documentsPerSync.WithLabelValues(objType).Add(float64(count))
 		}
-		status.RecordSync(syncType, result.DocCounts, nil)
+		// Update absolute document counts from NetBox (accurate regardless of sync type).
+		for objType, count := range result.TotalCounts {
+			documentCount.WithLabelValues(objType).Set(float64(count))
+		}
+		status.RecordSync(syncType, result.TotalCounts, nil)
 	}
 }

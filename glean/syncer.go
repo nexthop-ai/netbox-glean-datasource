@@ -43,7 +43,8 @@ type Syncer struct {
 
 // SyncResult contains per-object-type document counts and phase durations.
 type SyncResult struct {
-	DocCounts     map[string]int
+	DocCounts     map[string]int // Documents pushed this cycle (delta for incremental, total for full).
+	TotalCounts   map[string]int // Absolute total counts from NetBox (always accurate).
 	FetchDuration time.Duration
 	PushDuration  time.Duration
 }
@@ -104,16 +105,23 @@ func (s *Syncer) SyncAll(ctx context.Context, objectTypes []string, since *time.
 	}
 	fetchDuration := time.Since(fetchStart)
 
+	totalFetched := 0
+	docCounts := make(map[string]int, len(results))
+	for _, r := range results {
+		docCounts[r.crawler.ObjectType()] = len(r.docs)
+		totalFetched += len(r.docs)
+	}
+	slog.Info("fetch phase completed", "documents", totalFetched, "duration", fetchDuration)
+
 	// Phase 2: Push to Glean sequentially (Glean allows only one bulk upload at a time per datasource).
 	pushStart := time.Now()
-	docCounts := make(map[string]int, len(results))
 	for _, r := range results {
 		if err := s.pushToGlean(ctx, r.crawler, r.docs); err != nil {
 			return nil, &SyncError{Source: "glean", Err: fmt.Errorf("push phase failed: %w", err)}
 		}
-		docCounts[r.crawler.ObjectType()] = len(r.docs)
 	}
 	pushDuration := time.Since(pushStart)
+	slog.Info("push phase completed", "documents", totalFetched, "duration", pushDuration)
 
 	// Phase 3: Tell Glean to process all uploaded documents.
 	slog.Info("triggering document processing")
@@ -130,12 +138,52 @@ func (s *Syncer) SyncAll(ctx context.Context, objectTypes []string, since *time.
 		}
 	}
 
-	slog.Info("sync completed successfully")
+	// Phase 4: Get absolute totals from NetBox.
+	totalCounts := s.fetchTotalCounts(ctx, crawlers)
+
+	totalObjects := 0
+	for _, count := range totalCounts {
+		totalObjects += count
+	}
+	slog.Info("sync completed successfully", "pushed", totalFetched, "totalInNetBox", totalObjects)
 	return &SyncResult{
 		DocCounts:     docCounts,
+		TotalCounts:   totalCounts,
 		FetchDuration: fetchDuration,
 		PushDuration:  pushDuration,
 	}, nil
+}
+
+// fetchTotalCounts queries NetBox for the absolute count of each object type.
+func (s *Syncer) fetchTotalCounts(ctx context.Context, crawlers []crawler.Crawler) map[string]int {
+	counts := make(map[string]int, len(crawlers))
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(s.Concurrency)
+
+	type countResult struct {
+		objectType string
+		count      int
+	}
+	ch := make(chan countResult, len(crawlers))
+
+	for _, c := range crawlers {
+		g.Go(func() error {
+			n, err := s.NetBox.Count(ctx, c.Endpoint())
+			if err != nil {
+				slog.Warn("failed to get count from NetBox", "type", c.ObjectType(), "error", err)
+				return nil // non-fatal
+			}
+			ch <- countResult{objectType: c.ObjectType(), count: n}
+			return nil
+		})
+	}
+	_ = g.Wait()
+	close(ch)
+
+	for r := range ch {
+		counts[r.objectType] = r.count
+	}
+	return counts
 }
 
 func (s *Syncer) resolveCrawlers(objectTypes []string) []crawler.Crawler {
