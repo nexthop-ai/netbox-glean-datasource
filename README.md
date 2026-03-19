@@ -89,7 +89,7 @@ In serve mode, an HTTP server is started (default `:8080`) providing:
 
 - `/` — Status page showing sync state, document counts, and uptime
 - `/metrics` — Prometheus metrics endpoint
-- `/sync` — Trigger an immediate sync cycle
+- `/api/sync` — Trigger an immediate sync cycle
 - `/api/version` — Version information (revision, build time)
 
 ## Docker

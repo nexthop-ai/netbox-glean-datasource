@@ -65,7 +65,7 @@ func startHTTPServer(addr string, status *SyncStatus) *http.Server {
 	mux.Handle("/metrics", promhttp.Handler())
 	mux.HandleFunc("/", status.handleStatus)
 	mux.HandleFunc("/ready", status.handleReady)
-	mux.HandleFunc("/sync", status.handleTriggerSync)
+	mux.HandleFunc("/api/sync", status.handleTriggerSync)
 	mux.HandleFunc("/api/version", handleVersion)
 
 	srv := &http.Server{
@@ -132,7 +132,7 @@ a.btn:hover { background: #0052a3; }
 	}
 
 	fmt.Fprintf(&buf, `<h2>Actions</h2>
-<a class="btn" href="/sync">Trigger Sync Now</a>
+<a class="btn" href="/api/sync">Trigger Sync Now</a>
 </body></html>`)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
