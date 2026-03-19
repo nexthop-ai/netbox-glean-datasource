@@ -16,13 +16,13 @@ Glean (an enterprise search platform) by:
 
 ## Indexed object types
 
-| Category       | Object Types                                                        |
-| -------------- | ------------------------------------------------------------------- |
-| DCIM           | Device, Site, Rack, Interface, Console Port, Manufacturer, Platform |
-| IPAM           | IP Address, Prefix, VLAN, VRF                                       |
-| Circuits       | Circuit, Provider                                                   |
-| Virtualization | Virtual Machine, Cluster                                            |
-| Tenancy        | Tenant                                                              |
+| Category       | Object Types                                                                             |
+| -------------- | ---------------------------------------------------------------------------------------- |
+| DCIM           | Device, Site, Rack, Interface, Console Port, Console Server Port, Manufacturer, Platform |
+| IPAM           | IP Address, Prefix, VLAN, VRF                                                            |
+| Circuits       | Circuit, Provider                                                                        |
+| Virtualization | Virtual Machine, Cluster                                                                 |
+| Tenancy        | Tenant                                                                                   |
 
 Each object is indexed with its key fields as searchable text and custom
 properties for faceted filtering (e.g., filter by site, role, tenant, status).
