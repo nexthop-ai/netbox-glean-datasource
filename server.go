@@ -66,6 +66,7 @@ func startHTTPServer(addr string, status *SyncStatus) *http.Server {
 	mux.HandleFunc("/", status.handleStatus)
 	mux.HandleFunc("/ready", status.handleReady)
 	mux.HandleFunc("/sync", status.handleTriggerSync)
+	mux.HandleFunc("/api/version", handleVersion)
 
 	srv := &http.Server{
 		Addr:              addr,
