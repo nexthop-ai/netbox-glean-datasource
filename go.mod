@@ -3,7 +3,7 @@ module github.com/nexthop-ai/netbox-glean-datasource
 go 1.26
 
 require (
-	github.com/gleanwork/api-client-go v0.11.39
+	github.com/gleanwork/api-client-go v0.11.40
 	github.com/prometheus/client_golang v1.23.2
 	golang.org/x/sync v0.20.0
 	gopkg.in/yaml.v3 v3.0.1
