@@ -5,7 +5,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -o /netbox-glean-datasource .
 
-FROM gcr.io/distroless/static-debian12
+FROM gcr.io/distroless/static-debian13
 COPY --from=builder /netbox-glean-datasource /netbox-glean-datasource
 ENTRYPOINT ["/netbox-glean-datasource"]
 CMD ["serve"]
