@@ -16,14 +16,31 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Wait for CI checks to pass
+      - name: Wait for CI to pass
         if: |
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
           steps.metadata.outputs.update-type == 'version-update:semver-minor' ||
           (steps.metadata.outputs.update-type == 'version-update:semver-major' && steps.metadata.outputs.package-ecosystem == 'github_actions')
-        run: gh pr checks "$PR_URL" --watch --fail-fast
+        run: |
+          SHA="${{ github.event.pull_request.head.sha }}"
+          for i in $(seq 1 60); do
+            RESULT=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/check-runs" \
+              --jq '[.check_runs[] | select(.name != "'"$GITHUB_JOB"'")] |
+                    if length == 0 then "pending"
+                    elif map(select(.status != "completed")) | length > 0 then "pending"
+                    elif map(select(.conclusion | IN("success", "skipped", "neutral") | not)) | length > 0 then "failure"
+                    else "success"
+                    end')
+            echo "Checks status: $RESULT (attempt $i/60)"
+            case "$RESULT" in
+              success) echo "All checks passed"; exit 0 ;;
+              pending) sleep 20 ;;
+              *) echo "A check failed: $RESULT"; exit 1 ;;
+            esac
+          done
+          echo "Timed out waiting for checks"
+          exit 1
         env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-merge Dependabot PRs
