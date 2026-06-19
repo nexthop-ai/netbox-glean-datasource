@@ -33,7 +33,7 @@ func (c *TenantCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("Tenant"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbGroup", "Group", components.PropertyTypePicklist, 1),
+			FacetDef("nbGroup", "Group", components.PropertyDefinitionPropertyTypePicklist, 1),
 		},
 	}
 }

@@ -33,13 +33,13 @@ func (c *IPAddressCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("IP Address"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbStatus", "Status", components.PropertyTypePicklist, 1),
-			FacetDef("nbRole", "Role", components.PropertyTypePicklist, 2),
-			FacetDef("nbVrf", "VRF", components.PropertyTypePicklist, 3),
-			FacetDef("nbTenant", "Tenant", components.PropertyTypePicklist, 4),
-			PropertyDef("nbDnsName", "DNS Name", components.PropertyTypeText),
-			PropertyDef("nbAssignedTo", "Assigned To", components.PropertyTypeText),
-			PropertyDef("nbAddress", "Address", components.PropertyTypeText),
+			FacetDef("nbStatus", "Status", components.PropertyDefinitionPropertyTypePicklist, 1),
+			FacetDef("nbRole", "Role", components.PropertyDefinitionPropertyTypePicklist, 2),
+			FacetDef("nbVrf", "VRF", components.PropertyDefinitionPropertyTypePicklist, 3),
+			FacetDef("nbTenant", "Tenant", components.PropertyDefinitionPropertyTypePicklist, 4),
+			PropertyDef("nbDnsName", "DNS Name", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbAssignedTo", "Assigned To", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbAddress", "Address", components.PropertyDefinitionPropertyTypeText),
 		},
 	}
 }

@@ -35,9 +35,9 @@ func (c *VRFCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("VRF"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbTenant", "Tenant", components.PropertyTypePicklist, 1),
-			PropertyDef("nbRd", "Route Distinguisher", components.PropertyTypeText),
-			PropertyDef("nbEnforceUnique", "Enforce Unique", components.PropertyTypeText),
+			FacetDef("nbTenant", "Tenant", components.PropertyDefinitionPropertyTypePicklist, 1),
+			PropertyDef("nbRd", "Route Distinguisher", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbEnforceUnique", "Enforce Unique", components.PropertyDefinitionPropertyTypeText),
 		},
 	}
 }

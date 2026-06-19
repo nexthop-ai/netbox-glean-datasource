@@ -33,7 +33,7 @@ func (c *PlatformCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("Platform"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbManufacturer", "Manufacturer", components.PropertyTypePicklist, 1),
+			FacetDef("nbManufacturer", "Manufacturer", components.PropertyDefinitionPropertyTypePicklist, 1),
 		},
 	}
 }

@@ -35,14 +35,14 @@ func (c *CircuitCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("Circuit"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbStatus", "Status", components.PropertyTypePicklist, 1),
-			FacetDef("nbCircuitType", "Type", components.PropertyTypePicklist, 2),
-			FacetDef("nbProvider", "Provider", components.PropertyTypePicklist, 3),
-			FacetDef("nbTenant", "Tenant", components.PropertyTypePicklist, 4),
-			PropertyDef("nbCid", "Circuit ID", components.PropertyTypeText),
-			PropertyDef("nbCommitRate", "Commit Rate (Kbps)", components.PropertyTypeText),
-			PropertyDef("nbTerminationA", "Termination A", components.PropertyTypeText),
-			PropertyDef("nbTerminationZ", "Termination Z", components.PropertyTypeText),
+			FacetDef("nbStatus", "Status", components.PropertyDefinitionPropertyTypePicklist, 1),
+			FacetDef("nbCircuitType", "Type", components.PropertyDefinitionPropertyTypePicklist, 2),
+			FacetDef("nbProvider", "Provider", components.PropertyDefinitionPropertyTypePicklist, 3),
+			FacetDef("nbTenant", "Tenant", components.PropertyDefinitionPropertyTypePicklist, 4),
+			PropertyDef("nbCid", "Circuit ID", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbCommitRate", "Commit Rate (Kbps)", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbTerminationA", "Termination A", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbTerminationZ", "Termination Z", components.PropertyDefinitionPropertyTypeText),
 		},
 	}
 }

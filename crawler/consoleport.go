@@ -33,12 +33,12 @@ func (c *ConsolePortCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("Console Port"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbDevice", "Device", components.PropertyTypePicklist, 1),
-			FacetDef("nbPortType", "Type", components.PropertyTypePicklist, 2),
-			PropertyDef("nbSpeed", "Speed", components.PropertyTypeText),
-			PropertyDef("nbLabel", "Label", components.PropertyTypeText),
-			PropertyDef("nbConnectedTo", "Connected To", components.PropertyTypeText),
-			PropertyDef("nbCable", "Cable", components.PropertyTypeText),
+			FacetDef("nbDevice", "Device", components.PropertyDefinitionPropertyTypePicklist, 1),
+			FacetDef("nbPortType", "Type", components.PropertyDefinitionPropertyTypePicklist, 2),
+			PropertyDef("nbSpeed", "Speed", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbLabel", "Label", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbConnectedTo", "Connected To", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbCable", "Cable", components.PropertyDefinitionPropertyTypeText),
 		},
 	}
 }

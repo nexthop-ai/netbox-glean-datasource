@@ -167,7 +167,7 @@ func BaseDocument(objectType string, obj map[string]any, datasource, netboxURL s
 	}
 }
 
-func PropertyDef(name, label string, propType components.PropertyType) components.PropertyDefinition {
+func PropertyDef(name, label string, propType components.PropertyDefinitionPropertyType) components.PropertyDefinition {
 	return components.PropertyDefinition{
 		Name:         Ptr(name),
 		DisplayLabel: Ptr(label),
@@ -176,7 +176,7 @@ func PropertyDef(name, label string, propType components.PropertyType) component
 	}
 }
 
-func FacetDef(name, label string, propType components.PropertyType, order int64) components.PropertyDefinition {
+func FacetDef(name, label string, propType components.PropertyDefinitionPropertyType, order int64) components.PropertyDefinition {
 	p := PropertyDef(name, label, propType)
 	p.UIOptions = components.UIOptionsSearchResult.ToPointer()
 	p.UIFacetOrder = &order

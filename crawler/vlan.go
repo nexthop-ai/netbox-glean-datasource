@@ -35,12 +35,12 @@ func (c *VLANCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("VLAN"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbStatus", "Status", components.PropertyTypePicklist, 1),
-			FacetDef("nbRole", "Role", components.PropertyTypePicklist, 2),
-			FacetDef("nbSite", "Site", components.PropertyTypePicklist, 3),
-			FacetDef("nbTenant", "Tenant", components.PropertyTypePicklist, 4),
-			PropertyDef("nbVid", "VID", components.PropertyTypeText),
-			PropertyDef("nbGroup", "Group", components.PropertyTypeText),
+			FacetDef("nbStatus", "Status", components.PropertyDefinitionPropertyTypePicklist, 1),
+			FacetDef("nbRole", "Role", components.PropertyDefinitionPropertyTypePicklist, 2),
+			FacetDef("nbSite", "Site", components.PropertyDefinitionPropertyTypePicklist, 3),
+			FacetDef("nbTenant", "Tenant", components.PropertyDefinitionPropertyTypePicklist, 4),
+			PropertyDef("nbVid", "VID", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbGroup", "Group", components.PropertyDefinitionPropertyTypeText),
 		},
 	}
 }

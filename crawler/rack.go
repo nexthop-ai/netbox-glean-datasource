@@ -35,13 +35,13 @@ func (c *RackCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("Rack"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbStatus", "Status", components.PropertyTypePicklist, 1),
-			FacetDef("nbSite", "Site", components.PropertyTypePicklist, 2),
-			FacetDef("nbRole", "Role", components.PropertyTypePicklist, 3),
-			FacetDef("nbTenant", "Tenant", components.PropertyTypePicklist, 4),
-			PropertyDef("nbLocation", "Location", components.PropertyTypeText),
-			PropertyDef("nbUHeight", "U Height", components.PropertyTypeText),
-			PropertyDef("nbSerialNumber", "Serial Number", components.PropertyTypeText),
+			FacetDef("nbStatus", "Status", components.PropertyDefinitionPropertyTypePicklist, 1),
+			FacetDef("nbSite", "Site", components.PropertyDefinitionPropertyTypePicklist, 2),
+			FacetDef("nbRole", "Role", components.PropertyDefinitionPropertyTypePicklist, 3),
+			FacetDef("nbTenant", "Tenant", components.PropertyDefinitionPropertyTypePicklist, 4),
+			PropertyDef("nbLocation", "Location", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbUHeight", "U Height", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbSerialNumber", "Serial Number", components.PropertyDefinitionPropertyTypeText),
 		},
 	}
 }

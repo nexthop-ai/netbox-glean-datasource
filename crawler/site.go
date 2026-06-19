@@ -33,13 +33,13 @@ func (s *SiteCrawler) ObjectDefinition() components.ObjectDefinition {
 		DisplayLabel: Ptr("Site"),
 		DocCategory:  components.DocCategoryKnowledgeHub.ToPointer(),
 		PropertyDefinitions: []components.PropertyDefinition{
-			FacetDef("nbStatus", "Status", components.PropertyTypePicklist, 1),
-			FacetDef("nbRegion", "Region", components.PropertyTypePicklist, 2),
-			FacetDef("nbGroup", "Group", components.PropertyTypePicklist, 3),
-			FacetDef("nbTenant", "Tenant", components.PropertyTypePicklist, 4),
-			PropertyDef("nbFacility", "Facility", components.PropertyTypeText),
-			PropertyDef("nbPhysicalAddress", "Physical Address", components.PropertyTypeText),
-			PropertyDef("nbTimezone", "Time Zone", components.PropertyTypeText),
+			FacetDef("nbStatus", "Status", components.PropertyDefinitionPropertyTypePicklist, 1),
+			FacetDef("nbRegion", "Region", components.PropertyDefinitionPropertyTypePicklist, 2),
+			FacetDef("nbGroup", "Group", components.PropertyDefinitionPropertyTypePicklist, 3),
+			FacetDef("nbTenant", "Tenant", components.PropertyDefinitionPropertyTypePicklist, 4),
+			PropertyDef("nbFacility", "Facility", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbPhysicalAddress", "Physical Address", components.PropertyDefinitionPropertyTypeText),
+			PropertyDef("nbTimezone", "Time Zone", components.PropertyDefinitionPropertyTypeText),
 		},
 	}
 }
