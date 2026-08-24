@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"sort"
 	"sync"
 	"time"
 
@@ -121,10 +122,15 @@ a.btn:hover { background: #0052a3; }
 
 	if len(s.lastSyncDocs) > 0 {
 		fmt.Fprintf(&buf, `<h2>Documents (last sync)</h2><table><tr><th>Object Type</th><th>Count</th></tr>`)
+		objTypes := make([]string, 0, len(s.lastSyncDocs))
+		for objType := range s.lastSyncDocs {
+			objTypes = append(objTypes, objType)
+		}
+		sort.Strings(objTypes)
 		total := 0
-		for objType, count := range s.lastSyncDocs {
-			fmt.Fprintf(&buf, `<tr><td>%s</td><td>%d</td></tr>`, objType, count)
-			total += count
+		for _, objType := range objTypes {
+			fmt.Fprintf(&buf, `<tr><td>%s</td><td>%d</td></tr>`, objType, s.lastSyncDocs[objType])
+			total += s.lastSyncDocs[objType]
 		}
 		fmt.Fprintf(&buf, `<tr><th>Total</th><th>%d</th></tr></table>`, total)
 	} else {
