@@ -18,7 +18,7 @@ Glean (an enterprise search platform) by:
 
 | Category       | Object Types                                                                             |
 | -------------- | ---------------------------------------------------------------------------------------- |
-| DCIM           | Device, Site, Rack, Interface, Console Port, Console Server Port, Manufacturer, Platform |
+| DCIM           | Device, Site, Rack, Interface, Console Port, Console Server Port, Power Port, Power Outlet, Manufacturer, Platform |
 | IPAM           | IP Address, Prefix, VLAN, VRF                                                            |
 | Circuits       | Circuit, Provider                                                                        |
 | Virtualization | Virtual Machine, Cluster                                                                 |

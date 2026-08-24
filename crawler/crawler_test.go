@@ -30,7 +30,7 @@ func TestRegistry(t *testing.T) {
 		"Device", "Site", "IPAddress", "Prefix", "VLAN",
 		"VirtualMachine", "Rack", "Circuit", "Tenant", "VRF",
 		"Cluster", "Interface", "Provider", "Platform", "Manufacturer",
-		"ConsolePort", "ConsoleServerPort",
+		"ConsolePort", "ConsoleServerPort", "PowerPort", "PowerOutlet",
 	}
 	for _, ot := range expectedTypes {
 		c, ok := Get(ot)
